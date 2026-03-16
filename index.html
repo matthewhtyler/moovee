@@ -485,8 +485,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    pointer-events: all;
+    pointer-events: none;
   }
+  #movie-overlay.show #movie-current-view { pointer-events: all; }
   #movie-overlay.has-drawing #movie-current-view { display: none; }
   #movie-center-text {
     font-family: 'Patrick Hand SC', cursive;
