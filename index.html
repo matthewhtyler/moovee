@@ -750,9 +750,12 @@
     display: block;
   }
   #poster-img.loading {
-    width: min(320px, 80vw);
-    height: 420px;
-    background: #333;
+    width: min(280px, 75vw);
+    height: min(420px, calc(75vw * 1.5));
+    background: transparent;
+    border: 2px dashed rgba(255,255,255,0.3);
+    border-radius: 12px;
+    box-shadow: none;
   }
   #poster-title {
     font-family: 'Patrick Hand SC', cursive;
