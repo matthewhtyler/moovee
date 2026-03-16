@@ -268,6 +268,8 @@
     font-size: 15px;
     font-weight: 500;
     cursor: pointer;
+    color: #666;
+    -webkit-appearance: none;
     transition: opacity 0.15s, transform 0.1s;
   }
   .modal-btn:active { transform: scale(0.97); }
@@ -652,6 +654,64 @@
   #tmdb-status.err { color: var(--accent); }
   #tmdb-status.loading { color: #999; }
 
+  .settings-toggle-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .toggle-label {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    cursor: pointer;
+  }
+  .toggle-label span:first-child {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+  }
+  .toggle-sub {
+    font-size: 11px;
+    color: #999;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .toggle-wrap {
+    position: relative;
+    width: 44px;
+    height: 26px;
+    flex-shrink: 0;
+  }
+  #family-friendly-toggle {
+    position: absolute;
+    opacity: 0;
+    width: 100%; height: 100%;
+    margin: 0;
+    cursor: pointer;
+    z-index: 1;
+  }
+  .toggle-track {
+    width: 44px; height: 26px;
+    background: #ddd;
+    border-radius: 13px;
+    transition: background 0.2s;
+    position: relative;
+  }
+  #family-friendly-toggle:checked + .toggle-track { background: var(--ink); }
+  .toggle-thumb {
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 20px; height: 20px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    transition: transform 0.2s;
+  }
+  #family-friendly-toggle:checked + .toggle-track .toggle-thumb {
+    transform: translateX(18px);
+  }
+
 </style>
 </head>
 <body>
@@ -808,6 +868,16 @@
       </div>
     </div>
     <div id="tmdb-status"></div>
+    <div class="settings-row settings-toggle-row">
+      <label for="family-friendly-toggle" class="toggle-label">
+        <span>Family friendly</span>
+        <span class="toggle-sub">G and PG rated only</span>
+      </label>
+      <div class="toggle-wrap">
+        <input type="checkbox" id="family-friendly-toggle" role="switch">
+        <div class="toggle-track"><div class="toggle-thumb"></div></div>
+      </div>
+    </div>
     <div class="modal-actions">
       <button class="modal-btn" id="settings-cancel">Cancel</button>
       <button class="modal-btn modal-btn-primary" id="settings-save">Save</button>
@@ -1032,13 +1102,16 @@ function showDone(mode) {
   doneOverlay.classList.remove('goodmoove');
   if (doneMode === 'timesup') {
     if (movieIndex >= 0) saveDrawingToIndex(movieIndex);
+    doneText.style.fontSize = '';
     doneText.textContent = 'Moove on!';
     doneSub.textContent = 'Pass to the next player...';
   } else if (doneMode === 'goodmoove') {
     doneText.textContent = 'Good moove!';
+    doneText.style.fontSize = '52px';
     doneSub.textContent = 'Pass to the next player...';
     doneOverlay.classList.add('goodmoove');
   } else if (doneMode === 'launch') {
+    doneText.style.fontSize = '';
     doneText.textContent = 'Moovee!';
     doneSub.textContent = 'Tap to begin...';
   }
@@ -1355,7 +1428,39 @@ updateNavBtns();
 
 // ── Settings & TMDb ──
 let tmdbApiKey = localStorage.getItem('tmdb_api_key') || '';
+let familyFriendly = localStorage.getItem('family_friendly') === 'true';
 let tmdbMovies = [];
+
+// G-rated and PG-rated family friendly hardcoded fallback titles
+const FAMILY_MOVIES = [
+  "Toy Story","Toy Story 2","Toy Story 3","Toy Story 4","Finding Nemo","Finding Dory",
+  "The Lion King","Aladdin","Beauty and the Beast","The Little Mermaid","Cinderella",
+  "Snow White","Sleeping Beauty","Bambi","Dumbo","Fantasia","Pinocchio",
+  "The Jungle Book","The Aristocats","Robin Hood","The Rescuers","The Fox and the Hound",
+  "The Great Mouse Detective","Oliver & Company","The Little Mermaid","Hercules","Mulan",
+  "Tarzan","Lilo & Stitch","Treasure Planet","Brother Bear","Home on the Range",
+  "Bolt","The Princess and the Frog","Tangled","Brave","Wreck-It Ralph","Frozen",
+  "Big Hero 6","Zootopia","Moana","Coco","Ralph Breaks the Internet","Frozen II","Encanto",
+  "Strange World","Wish","WALL-E","Up","Inside Out","The Good Dinosaur","Inside Out 2",
+  "Elemental","Turning Red","Lightyear","Onward","Soul","Luca",
+  "A Bug's Life","Monsters Inc","Monsters University","Cars","Cars 2","Cars 3",
+  "Ratatouille","Incredibles","The Incredibles 2","Brave",
+  "Kung Fu Panda","Kung Fu Panda 2","Kung Fu Panda 3","Kung Fu Panda 4",
+  "How to Train Your Dragon","How to Train Your Dragon 2","How to Train Your Dragon 3",
+  "Shrek","Shrek 2","Shrek the Third","Shrek Forever After",
+  "Madagascar","Madagascar 2","Madagascar 3","The Croods","The Croods 2",
+  "Bee Movie","Shark Tale","Over the Hedge","Flushed Away","Antz",
+  "Happy Feet","Happy Feet Two","Penguins of Madagascar",
+  "Home","The Boss Baby","Trolls","Trolls World Tour","Puss in Boots","Puss in Boots 2",
+  "Spirited Away","My Neighbor Totoro","Kiki's Delivery Service","Castle in the Sky",
+  "Ponyo","The Secret World of Arrietty","The Wind Rises",
+  "E.T.","Babe","Charlotte's Web","Stuart Little","Homeward Bound",
+  "The Wizard of Oz","Mary Poppins","Willy Wonka and the Chocolate Factory",
+  "Matilda","Harriet the Spy","Holes","Tuck Everlasting",
+  "The Princess Bride","The NeverEnding Story","Willow","Labyrinth",
+  "Bedknobs and Broomsticks","Pete's Dragon","The Black Cauldron",
+  "Chitty Chitty Bang Bang","The Sound of Music","Annie"
+];
 
 async function fetchTmdbMovies(key, statusEl) {
   const status = statusEl || document.getElementById('tmdb-status');
@@ -1363,13 +1468,26 @@ async function fetchTmdbMovies(key, statusEl) {
   status.className = 'loading';
   try {
     const pages = [1, 2, 3, 4, 5];
-    const results = await Promise.all(pages.map(p =>
-      fetch(`https://api.themoviedb.org/3/movie/popular?api_key=${key}&language=en-US&page=${p}`)
-        .then(r => { if (!r.ok) throw new Error('Bad response'); return r.json(); })
+    let urls;
+    if (familyFriendly) {
+      // Fetch G and PG certified movies separately and combine
+      const ratings = ['G', 'PG'];
+      urls = ratings.flatMap(cert =>
+        pages.map(p =>
+          `https://api.themoviedb.org/3/discover/movie?api_key=${key}&language=en-US&certification_country=US&certification=${cert}&sort_by=popularity.desc&page=${p}`
+        )
+      );
+    } else {
+      urls = pages.map(p =>
+        `https://api.themoviedb.org/3/movie/popular?api_key=${key}&language=en-US&page=${p}`
+      );
+    }
+    const results = await Promise.all(urls.map(url =>
+      fetch(url).then(r => { if (!r.ok) throw new Error('Bad response'); return r.json(); })
     ));
-    const fetched = results.flatMap(r => r.results.map(m => m.title));
-    // Merge with hardcoded list — deduplicated
-    tmdbMovies = [...new Set([...MOVIES, ...fetched])];
+    const fetched = results.flatMap(r => (r.results || []).map(m => m.title));
+    const base = familyFriendly ? FAMILY_MOVIES : MOVIES;
+    tmdbMovies = [...new Set([...base, ...fetched])];
     status.textContent = `✓ ${tmdbMovies.length} movies in pool`;
     status.className = 'ok';
     return true;
@@ -1381,8 +1499,9 @@ async function fetchTmdbMovies(key, statusEl) {
 }
 
 function getMoviePool() {
-  // Merged list when available, otherwise just hardcoded
-  return tmdbMovies.length > 0 ? tmdbMovies : MOVIES;
+  if (tmdbMovies.length > 0) return tmdbMovies;
+  // No TMDb data: use family-friendly fallback or full list
+  return familyFriendly ? FAMILY_MOVIES : MOVIES;
 }
 
 // Patch showMovie to use getMoviePool()
@@ -1395,6 +1514,7 @@ const tmdbInput = document.getElementById('tmdb-input');
 document.getElementById('btn-settings-movie').addEventListener('click', (e) => {
   e.stopPropagation();
   tmdbInput.value = tmdbApiKey;
+  document.getElementById('family-friendly-toggle').checked = familyFriendly;
   const status = document.getElementById('tmdb-status');
   if (tmdbApiKey && tmdbMovies.length > 0) {
     status.textContent = `✓ ${tmdbMovies.length} movies loaded`;
@@ -1427,12 +1547,20 @@ document.getElementById('btn-tmdb-refresh').addEventListener('click', async (e) 
 
 document.getElementById('settings-save').addEventListener('click', async () => {
   const key = tmdbInput.value.trim();
+  const ffChecked = document.getElementById('family-friendly-toggle').checked;
+  // If family-friendly setting changed, clear stale tmdb cache
+  if (ffChecked !== familyFriendly) {
+    tmdbMovies = [];
+  }
+  familyFriendly = ffChecked;
+  localStorage.setItem('family_friendly', ffChecked ? 'true' : 'false');
+  // Clear tmdb cache if no key
   if (!key) {
     tmdbApiKey = '';
     tmdbMovies = [];
     localStorage.removeItem('tmdb_api_key');
-    document.getElementById('tmdb-status').textContent = 'Key cleared';
-    document.getElementById('tmdb-status').className = 'loading';
+    document.getElementById('tmdb-status').textContent = 'Saved';
+    document.getElementById('tmdb-status').className = 'ok';
     setTimeout(() => settingsOverlay.classList.remove('open'), 800);
     return;
   }
