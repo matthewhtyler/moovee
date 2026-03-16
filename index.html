@@ -580,7 +580,7 @@
   #settings-modal {
     background: white;
     border-radius: 24px;
-    padding: 32px 28px 24px;
+    padding: 32px 28px 32px;
     width: 320px;
     box-shadow: 0 20px 60px rgba(0,0,0,0.25);
     transform: translateY(20px) scale(0.97);
@@ -685,7 +685,7 @@
     height: 26px;
     flex-shrink: 0;
   }
-  #family-friendly-toggle {
+  #family-friendly-toggle, #english-only-toggle, #show-reset-toggle {
     position: absolute;
     opacity: 0;
     width: 100%; height: 100%;
@@ -700,7 +700,7 @@
     transition: background 0.2s;
     position: relative;
   }
-  #family-friendly-toggle:checked + .toggle-track { background: var(--ink); }
+  #family-friendly-toggle:checked + .toggle-track, #english-only-toggle:checked + .toggle-track, #show-reset-toggle:checked + .toggle-track { background: var(--ink); }
   .toggle-thumb {
     position: absolute;
     top: 3px; left: 3px;
@@ -710,7 +710,9 @@
     box-shadow: 0 1px 4px rgba(0,0,0,0.2);
     transition: transform 0.2s;
   }
-  #family-friendly-toggle:checked + .toggle-track .toggle-thumb {
+  #family-friendly-toggle:checked + .toggle-track .toggle-thumb,
+  #english-only-toggle:checked + .toggle-track .toggle-thumb,
+  #show-reset-toggle:checked + .toggle-track .toggle-thumb {
     transform: translateX(18px);
   }
 
@@ -907,9 +909,18 @@
   <div id="modal">
     <h2>Set Timer</h2>
     <div class="preset-grid" id="presets"></div>
-    <div class="modal-actions">
+    <div class="settings-row settings-toggle-row" style="margin-bottom:16px; justify-content:center; gap:12px;">
+      <label for="show-reset-toggle" class="toggle-label">
+        <span>Show start / reset</span>
+      </label>
+      <div class="toggle-wrap">
+        <input type="checkbox" id="show-reset-toggle" role="switch">
+        <div class="toggle-track"><div class="toggle-thumb"></div></div>
+      </div>
+    </div>
+    <div class="modal-actions" style="margin-top:24px;">
       <button class="modal-btn" id="modal-cancel">Cancel</button>
-      <button class="modal-btn" id="modal-set">Set</button>
+      <button class="modal-btn modal-btn-primary" id="modal-set">Set</button>
     </div>
   </div>
 </div>
@@ -942,7 +953,17 @@
         <div class="toggle-track"><div class="toggle-thumb"></div></div>
       </div>
     </div>
-    <div class="modal-actions">
+    <div class="settings-row settings-toggle-row" style="margin-bottom:20px;">
+      <label for="english-only-toggle" class="toggle-label">
+        <span>English language only</span>
+        <span class="toggle-sub">Excludes non-English titles</span>
+      </label>
+      <div class="toggle-wrap">
+        <input type="checkbox" id="english-only-toggle" role="switch">
+        <div class="toggle-track"><div class="toggle-thumb"></div></div>
+      </div>
+    </div>
+    <div class="modal-actions" style="margin-top:48px;">
       <button class="modal-btn" id="settings-cancel">Cancel</button>
       <button class="modal-btn modal-btn-primary" id="settings-save">Save</button>
     </div>
@@ -1133,10 +1154,7 @@ updateDisplay();
 // Start paused on load
 updateResetBtn();
 
-// Single tap on timer opens modal
-timerWrap.addEventListener('click', () => {
-  openModal();
-});
+// Single tap on timer opens modal (handled below after showResetBtn is defined)
 
 // ── Reset/Play button ──
 document.getElementById('btn-reset').addEventListener('click', () => {
@@ -1251,10 +1269,30 @@ function openModal() {
 
 document.getElementById('modal-cancel').addEventListener('click', () => {
   modal.classList.remove('open');
-  if (remaining > 0) startTimer();
+});
+
+// ── Show Reset Button setting ──
+let showResetBtn = localStorage.getItem('show_reset_btn') === 'true';
+
+function applyResetBtnVisibility() {
+  document.getElementById('btn-reset').style.display = showResetBtn ? '' : 'none';
+}
+
+// Populate toggle when timer modal opens
+timerWrap.addEventListener('click', () => {
+  document.getElementById('show-reset-toggle').checked = showResetBtn;
+  openModal();
 });
 
 document.getElementById('modal-set').addEventListener('click', () => {
+  // Save show-reset setting
+  const newShowReset = document.getElementById('show-reset-toggle').checked;
+  if (newShowReset !== showResetBtn) {
+    showResetBtn = newShowReset;
+    localStorage.setItem('show_reset_btn', showResetBtn ? 'true' : 'false');
+    applyResetBtnVisibility();
+  }
+  // Set timer
   let secs = selectedPreset || 60;
   modal.classList.remove('open');
   resetTimer(secs);
@@ -1583,7 +1621,25 @@ function showPoster(idx) {
   posterPopup.classList.add('show');
 }
 
-posterPopup.addEventListener('click', () => {
+posterPopup.addEventListener('click', (e) => {
+  // If tapping the blank/loading image box, retry fetching the poster
+  if (posterImg.contains(e.target) && !posterImg.src && tmdbApiKey) {
+    const idx = movieIndex;
+    const entry = movieHistory[idx];
+    if (entry) {
+      entry.posterUrl = undefined; // reset so fetchPoster will try again
+      posterImg.classList.add('loading');
+      fetchPoster(entry.title, idx).then(() => {
+        if (!posterPopup.classList.contains('show')) return;
+        posterImg.classList.remove('loading');
+        if (entry.posterUrl) {
+          posterImg.style.display = 'block';
+          posterImg.src = entry.posterUrl;
+        }
+      });
+    }
+    return;
+  }
   posterPopup.classList.remove('show');
 });
 
@@ -1592,6 +1648,7 @@ posterPopup.addEventListener('click', () => {
 // ── Settings & TMDb ──
 let tmdbApiKey = localStorage.getItem('tmdb_api_key') || '';
 let familyFriendly = localStorage.getItem('family_friendly') === 'true';
+let englishOnly = localStorage.getItem('english_only') === 'true';
 let tmdbMovies = [];
 
 // G-rated and PG-rated family friendly hardcoded fallback titles
@@ -1632,17 +1689,19 @@ async function fetchTmdbMovies(key, statusEl) {
   try {
     const pages = [1, 2, 3, 4, 5];
     let urls;
+    const langParam = englishOnly ? '&with_original_language=en' : '';
     if (familyFriendly) {
-      // Fetch G and PG certified movies separately and combine
       const ratings = ['G', 'PG'];
       urls = ratings.flatMap(cert =>
         pages.map(p =>
-          `https://api.themoviedb.org/3/discover/movie?api_key=${key}&language=en-US&certification_country=US&certification=${cert}&sort_by=popularity.desc&page=${p}`
+          `https://api.themoviedb.org/3/discover/movie?api_key=${key}&language=en-US&certification_country=US&certification=${cert}&sort_by=popularity.desc${langParam}&page=${p}`
         )
       );
     } else {
       urls = pages.map(p =>
-        `https://api.themoviedb.org/3/movie/popular?api_key=${key}&language=en-US&page=${p}`
+        englishOnly
+          ? `https://api.themoviedb.org/3/discover/movie?api_key=${key}&language=en-US&sort_by=popularity.desc&with_original_language=en&page=${p}`
+          : `https://api.themoviedb.org/3/movie/popular?api_key=${key}&language=en-US&page=${p}`
       );
     }
     const results = await Promise.all(urls.map(url =>
@@ -1650,6 +1709,8 @@ async function fetchTmdbMovies(key, statusEl) {
     ));
     const fetched = results.flatMap(r => (r.results || []).map(m => m.title));
     const base = familyFriendly ? FAMILY_MOVIES : MOVIES;
+    // If englishOnly, also filter the base hardcoded list isn't needed (already English)
+    // but filter any previously fetched non-English titles out
     tmdbMovies = [...new Set([...base, ...fetched])];
     status.textContent = `✓ ${tmdbMovies.length} movies in pool`;
     status.className = 'ok';
@@ -1678,6 +1739,7 @@ document.getElementById('btn-settings-movie').addEventListener('click', (e) => {
   e.stopPropagation();
   tmdbInput.value = tmdbApiKey;
   document.getElementById('family-friendly-toggle').checked = familyFriendly;
+  document.getElementById('english-only-toggle').checked = englishOnly;
   const status = document.getElementById('tmdb-status');
   if (tmdbApiKey && tmdbMovies.length > 0) {
     status.textContent = `✓ ${tmdbMovies.length} movies loaded`;
@@ -1728,13 +1790,18 @@ function refreshCurrentMovieTitle() {
 document.getElementById('settings-save').addEventListener('click', async () => {
   const key = tmdbInput.value.trim();
   const ffChecked = document.getElementById('family-friendly-toggle').checked;
+  const eoChecked = document.getElementById('english-only-toggle').checked;
   const ffChanged = ffChecked !== familyFriendly;
-  // If family-friendly setting changed, clear stale tmdb cache
-  if (ffChanged) {
+  const eoChanged = eoChecked !== englishOnly;
+  const settingsChanged = ffChanged || eoChanged;
+  // Clear stale tmdb cache if any filter changed
+  if (settingsChanged) {
     tmdbMovies = [];
   }
   familyFriendly = ffChecked;
+  englishOnly = eoChecked;
   localStorage.setItem('family_friendly', ffChecked ? 'true' : 'false');
+  localStorage.setItem('english_only', eoChecked ? 'true' : 'false');
   // Clear tmdb cache if no key
   if (!key) {
     tmdbApiKey = '';
@@ -1744,7 +1811,7 @@ document.getElementById('settings-save').addEventListener('click', async () => {
     document.getElementById('tmdb-status').className = 'ok';
     setTimeout(() => {
       settingsOverlay.classList.remove('open');
-      if (ffChanged) refreshCurrentMovieTitle();
+      if (settingsChanged) refreshCurrentMovieTitle();
     }, 800);
     return;
   }
@@ -1754,7 +1821,7 @@ document.getElementById('settings-save').addEventListener('click', async () => {
     localStorage.setItem('tmdb_api_key', key);
     setTimeout(() => {
       settingsOverlay.classList.remove('open');
-      if (ffChanged) refreshCurrentMovieTitle();
+      if (settingsChanged) refreshCurrentMovieTitle();
     }, 900);
   }
 });
@@ -1768,6 +1835,9 @@ if (tmdbApiKey) {
   const silentStatus = document.createElement('span');
   fetchTmdbMovies(tmdbApiKey, silentStatus).catch(() => {});
 }
+
+// Apply reset button visibility on load
+applyResetBtnVisibility();
 
 // Show launch screen on first load
 showDone('launch');
