@@ -485,7 +485,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    pointer-events: none;
+    pointer-events: all;
   }
   #movie-overlay.has-drawing #movie-current-view { display: none; }
   #movie-center-text {
@@ -1513,17 +1513,24 @@ btnForward.addEventListener('click', (e) => {
   }
 });
 
-// Tap on movie overlay
+// Tap backdrop to close/navigate — use current-view and drawing-bg as the tap targets
+// so that stopPropagation on the title text elements reliably intercepts first
 movieOverlay.addEventListener('click', (e) => {
   const navLeft = document.getElementById('movie-nav-left');
   const settingsBtn = document.getElementById('btn-settings-movie');
-  // Ignore taps on nav buttons, settings, and title text (title tap shows poster)
-  if (btnReload.contains(e.target) || navLeft.contains(e.target)) return;
+  // Ignore nav buttons and settings button
+  if (btnReload.contains(e.target)) return;
+  if (navLeft.contains(e.target)) return;
   if (settingsBtn && settingsBtn.contains(e.target)) return;
-  if (movieTitleText.contains(e.target) || movieCenterText.contains(e.target)) return;
 
+  // Tap on title text → show poster
+  if (movieTitleText.contains(e.target) || movieCenterText.contains(e.target)) {
+    showPoster(movieIndex);
+    return;
+  }
+
+  // Tap anywhere else → close/navigate
   const currentEntry = movieHistory[movieIndex];
-
   if (currentEntry && currentEntry.drawing) {
     navigateFromDrawingTitle();
   } else {
@@ -1542,30 +1549,34 @@ function showPoster(idx) {
   const entry = movieHistory[idx];
   if (!entry) return;
   posterTitle.textContent = entry.title;
-  if (entry.posterUrl) {
+  // No API key — just show title, no image
+  if (!tmdbApiKey) {
+    posterImg.src = '';
+    posterImg.classList.remove('loading');
+    posterImg.style.display = 'none';
+  } else if (entry.posterUrl) {
+    posterImg.style.display = 'block';
     posterImg.src = entry.posterUrl;
     posterImg.classList.remove('loading');
   } else if (entry.posterUrl === undefined) {
-    // Still fetching — show loading state
+    posterImg.style.display = 'block';
     posterImg.src = '';
     posterImg.classList.add('loading');
-    // Poll until available
     const poll = setInterval(() => {
       if (!posterPopup.classList.contains('show')) { clearInterval(poll); return; }
       if (entry.posterUrl !== undefined) {
         clearInterval(poll);
+        posterImg.classList.remove('loading');
         if (entry.posterUrl) {
           posterImg.src = entry.posterUrl;
-          posterImg.classList.remove('loading');
         } else {
-          posterImg.classList.remove('loading');
-          posterImg.src = '';
+          posterImg.style.display = 'none';
         }
       }
     }, 300);
   } else {
-    // No poster found
     posterImg.src = '';
+    posterImg.style.display = 'none';
     posterImg.classList.remove('loading');
   }
   posterPopup.classList.add('show');
@@ -1575,17 +1586,7 @@ posterPopup.addEventListener('click', () => {
   posterPopup.classList.remove('show');
 });
 
-// Tap on either title text to show poster (only if API key present)
-movieTitleText.addEventListener('click', (e) => {
-  if (!tmdbApiKey) return; // let tap fall through to overlay handler
-  e.stopPropagation();
-  showPoster(movieIndex);
-});
-movieCenterText.addEventListener('click', (e) => {
-  if (!tmdbApiKey) return; // let tap fall through to overlay handler
-  e.stopPropagation();
-  showPoster(movieIndex);
-});
+// Title text tap listeners removed — handled inside handleOverlayTap below
 
 // ── Settings & TMDb ──
 let tmdbApiKey = localStorage.getItem('tmdb_api_key') || '';
