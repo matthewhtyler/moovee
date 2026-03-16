@@ -762,6 +762,32 @@
     max-width: 80vw;
     text-shadow: 1px 1px 0 rgba(0,0,0,0.5);
   }
+  #poster-no-key {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    padding: 32px 24px;
+    border-radius: 16px;
+    border: 2px dashed rgba(255,255,255,0.3);
+    max-width: 80vw;
+    transition: border-color 0.2s;
+  }
+  #poster-no-key:active { border-color: rgba(255,255,255,0.7); }
+  #poster-no-key-title {
+    font-family: 'Patrick Hand SC', cursive;
+    font-size: 28px;
+    color: white;
+    text-align: center;
+    letter-spacing: 0.05em;
+  }
+  #poster-no-key-sub {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: rgba(255,255,255,0.65);
+    text-align: center;
+  }
   /* Make both title text elements tappable */
   #movie-title-text, #movie-center-text {
     cursor: pointer;
@@ -901,13 +927,17 @@
   <div id="poster-popup-inner">
     <img id="poster-img" src="" alt="">
     <div id="poster-title"></div>
+    <div id="poster-no-key">
+      <div id="poster-no-key-title">NO POSTER FOUND</div>
+      <div id="poster-no-key-sub">Add TMDB account to load posters</div>
+    </div>
   </div>
 </div>
 
 <!-- Timer set modal -->
 <div id="modal-overlay">
   <div id="modal">
-    <h2>Set Timer</h2>
+    <h2>Timer</h2>
     <div class="preset-grid" id="presets"></div>
     <div class="settings-row settings-toggle-row" style="margin-bottom:16px; justify-content:center; gap:12px;">
       <label for="show-reset-toggle" class="toggle-label">
@@ -1587,19 +1617,29 @@ const posterTitle = document.getElementById('poster-title');
 function showPoster(idx) {
   const entry = movieHistory[idx];
   if (!entry) return;
+  const noKeyEl = document.getElementById('poster-no-key');
+  const noKeySub = document.getElementById('poster-no-key-sub');
+
+  // Always start with no-key box hidden, title shown
   posterTitle.textContent = entry.title;
-  // No API key — just show title, no image
+  posterTitle.style.display = '';
+  noKeyEl.style.display = 'none';
+  posterImg.style.display = 'none';
+  posterImg.classList.remove('loading');
+  posterImg.src = '';
+
   if (!tmdbApiKey) {
-    posterImg.src = '';
-    posterImg.classList.remove('loading');
-    posterImg.style.display = 'none';
+    // No key at all
+    noKeySub.textContent = 'Check TMDB settings ›';
+    posterTitle.style.display = 'none';
+    noKeyEl.style.display = 'flex';
   } else if (entry.posterUrl) {
+    // Poster loaded — show it, no no-key box
     posterImg.style.display = 'block';
     posterImg.src = entry.posterUrl;
-    posterImg.classList.remove('loading');
   } else if (entry.posterUrl === undefined) {
+    // Still fetching
     posterImg.style.display = 'block';
-    posterImg.src = '';
     posterImg.classList.add('loading');
     const poll = setInterval(() => {
       if (!posterPopup.classList.contains('show')) { clearInterval(poll); return; }
@@ -1608,18 +1648,36 @@ function showPoster(idx) {
         posterImg.classList.remove('loading');
         if (entry.posterUrl) {
           posterImg.src = entry.posterUrl;
+          posterImg.style.display = 'block';
         } else {
+          // Fetch finished but no poster found
           posterImg.style.display = 'none';
+          noKeySub.textContent = 'Check TMDB settings ›';
+          posterTitle.style.display = 'none';
+          noKeyEl.style.display = 'flex';
         }
       }
     }, 300);
   } else {
-    posterImg.src = '';
-    posterImg.style.display = 'none';
-    posterImg.classList.remove('loading');
+    // posterUrl is null — no poster found
+    noKeySub.textContent = 'Check TMDB settings ›';
+    posterTitle.style.display = 'none';
+    noKeyEl.style.display = 'flex';
   }
   posterPopup.classList.add('show');
 }
+
+document.getElementById('poster-no-key').addEventListener('click', (e) => {
+  e.stopPropagation();
+  posterPopup.classList.remove('show');
+  // Open settings
+  document.getElementById('tmdb-input').value = tmdbApiKey;
+  document.getElementById('family-friendly-toggle').checked = familyFriendly;
+  document.getElementById('english-only-toggle').checked = englishOnly;
+  document.getElementById('tmdb-status').textContent = '';
+  document.getElementById('tmdb-status').className = '';
+  settingsOverlay.classList.add('open');
+});
 
 posterPopup.addEventListener('click', (e) => {
   // If tapping the blank/loading image box, retry fetching the poster
