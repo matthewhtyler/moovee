@@ -713,6 +713,60 @@
     transform: translateX(18px);
   }
 
+
+  /* ── POSTER POPUP ── */
+  #poster-popup {
+    position: fixed; inset: 0;
+    z-index: 60;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+  }
+  #poster-popup.show {
+    opacity: 1;
+    pointer-events: all;
+  }
+  #poster-popup-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    max-width: 88vw;
+    animation: pop-in 0.3s cubic-bezier(.34,1.56,.64,1);
+  }
+  #poster-img {
+    max-width: min(320px, 80vw);
+    max-height: 70vh;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    object-fit: contain;
+    background: #222;
+    display: block;
+  }
+  #poster-img.loading {
+    width: min(320px, 80vw);
+    height: 420px;
+    background: #333;
+  }
+  #poster-title {
+    font-family: 'Patrick Hand SC', cursive;
+    font-size: 20px;
+    color: white;
+    text-align: center;
+    max-width: 80vw;
+    text-shadow: 1px 1px 0 rgba(0,0,0,0.5);
+  }
+  /* Make both title text elements tappable */
+  #movie-title-text, #movie-center-text {
+    cursor: pointer;
+  }
+  #movie-title-text:hover, #movie-center-text:hover {
+    opacity: 0.8;
+  }
+
 </style>
 </head>
 <body>
@@ -839,6 +893,14 @@
   </button>
 </div>
 
+<!-- Movie poster popup -->
+<div id="poster-popup">
+  <div id="poster-popup-inner">
+    <img id="poster-img" src="" alt="">
+    <div id="poster-title"></div>
+  </div>
+</div>
+
 <!-- Timer set modal -->
 <div id="modal-overlay">
   <div id="modal">
@@ -856,7 +918,7 @@
   <div id="settings-modal">
     <h2>Settings</h2>
     <div class="settings-row">
-      <label for="tmdb-input">TMDb API Key</label>
+      <label for="tmdb-input">TMDB API Key</label>
       <div class="tmdb-input-row">
         <input type="text" id="tmdb-input" placeholder="Paste your API key here" autocomplete="off" autocorrect="off" spellcheck="false">
         <button id="btn-tmdb-refresh" title="Fetch movies">
@@ -1256,6 +1318,7 @@ const MOVIES = [
 
 let movieHistory = [];  // { title, drawing } — drawing is a locked dataURL or null
 let movieIndex = -1;
+let activeDrawingIndex = -1; // index that was being drawn when movie screen opened
 
 const movieOverlay   = document.getElementById('movie-overlay');
 const movieTitleText = document.getElementById('movie-title-text');
@@ -1327,14 +1390,33 @@ function displayMovie(triggerAnim = true) {
   document.getElementById('btn-movie-corner').classList.add('on-movie');
 }
 
+async function fetchPoster(title, idx) {
+  if (!tmdbApiKey) return;
+  if (movieHistory[idx] && movieHistory[idx].posterUrl !== undefined) return; // already fetched
+  try {
+    const r = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${tmdbApiKey}&query=${encodeURIComponent(title)}&language=en-US&page=1`);
+    const data = await r.json();
+    const result = data.results && data.results[0];
+    if (movieHistory[idx]) {
+      movieHistory[idx].posterUrl = result && result.poster_path
+        ? `https://image.tmdb.org/t/p/w500${result.poster_path}`
+        : null;
+    }
+  } catch(e) {
+    if (movieHistory[idx]) movieHistory[idx].posterUrl = null;
+  }
+}
+
 function showMovie() {
   // Do NOT save canvas here — saving only happens on timer expiry or checkmark
   const source = (typeof getMoviePool === 'function') ? getMoviePool() : MOVIES;
   const pool = source.filter(m => !movieHistory.map(e => e.title).includes(m));
   const available = pool.length > 0 ? pool : source;
   const pick = available[Math.floor(Math.random() * available.length)];
-  movieHistory.push({ title: pick, drawing: null });
+  movieHistory.push({ title: pick, drawing: null, posterUrl: undefined });
   movieIndex = movieHistory.length - 1;
+  // Fetch poster in background
+  fetchPoster(pick, movieIndex);
   displayMovie(true);
 }
 
@@ -1342,6 +1424,26 @@ function hideMovie() {
   movieOverlay.classList.remove('show');
   document.getElementById('btn-movie-corner').classList.remove('on-movie');
   isDrawing = false;
+}
+
+function hideMovieWithContext() {
+  // If returning to the title that was being drawn: resume timer, keep canvas
+  // If returning to a different (no-drawing) title: save canvas to active title, clear, reset timer
+  const returningToActive = movieIndex === activeDrawingIndex;
+  hideMovie();
+  if (!returningToActive) {
+    // Save whatever was drawn to the title that was active before browsing
+    saveDrawingToIndex(activeDrawingIndex);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    resetTimer(totalSeconds);
+  } else {
+    // Resume timer from where it was
+    if (remaining > 0 && !timerRunning) {
+      startTimer();
+      updateResetBtn();
+    }
+  }
 }
 
 // ── Done (checkmark) button ──
@@ -1376,9 +1478,11 @@ function handleMovieBtn() {
     if (currentEntry && currentEntry.drawing) {
       navigateFromDrawingTitle();
     } else {
-      hideMovie();
+      hideMovieWithContext();
     }
   } else {
+    // Record which index is active before opening
+    activeDrawingIndex = movieIndex;
     if (movieIndex < 0) {
       showMovie();
     } else {
@@ -1412,20 +1516,76 @@ btnForward.addEventListener('click', (e) => {
 // Tap on movie overlay
 movieOverlay.addEventListener('click', (e) => {
   const navLeft = document.getElementById('movie-nav-left');
-  // Ignore taps on nav buttons (cow btn is above overlay so never reaches here)
+  const settingsBtn = document.getElementById('btn-settings-movie');
+  // Ignore taps on nav buttons, settings, and title text (title tap shows poster)
   if (btnReload.contains(e.target) || navLeft.contains(e.target)) return;
+  if (settingsBtn && settingsBtn.contains(e.target)) return;
+  if (movieTitleText.contains(e.target) || movieCenterText.contains(e.target)) return;
 
   const currentEntry = movieHistory[movieIndex];
-  const isAtEnd = movieIndex === movieHistory.length - 1;
 
   if (currentEntry && currentEntry.drawing) {
     navigateFromDrawingTitle();
   } else {
-    hideMovie();
+    hideMovieWithContext();
   }
 });
 
 updateNavBtns();
+
+// ── Poster popup ──
+const posterPopup = document.getElementById('poster-popup');
+const posterImg = document.getElementById('poster-img');
+const posterTitle = document.getElementById('poster-title');
+
+function showPoster(idx) {
+  const entry = movieHistory[idx];
+  if (!entry) return;
+  posterTitle.textContent = entry.title;
+  if (entry.posterUrl) {
+    posterImg.src = entry.posterUrl;
+    posterImg.classList.remove('loading');
+  } else if (entry.posterUrl === undefined) {
+    // Still fetching — show loading state
+    posterImg.src = '';
+    posterImg.classList.add('loading');
+    // Poll until available
+    const poll = setInterval(() => {
+      if (!posterPopup.classList.contains('show')) { clearInterval(poll); return; }
+      if (entry.posterUrl !== undefined) {
+        clearInterval(poll);
+        if (entry.posterUrl) {
+          posterImg.src = entry.posterUrl;
+          posterImg.classList.remove('loading');
+        } else {
+          posterImg.classList.remove('loading');
+          posterImg.src = '';
+        }
+      }
+    }, 300);
+  } else {
+    // No poster found
+    posterImg.src = '';
+    posterImg.classList.remove('loading');
+  }
+  posterPopup.classList.add('show');
+}
+
+posterPopup.addEventListener('click', () => {
+  posterPopup.classList.remove('show');
+});
+
+// Tap on either title text to show poster (only if API key present)
+movieTitleText.addEventListener('click', (e) => {
+  if (!tmdbApiKey) return; // let tap fall through to overlay handler
+  e.stopPropagation();
+  showPoster(movieIndex);
+});
+movieCenterText.addEventListener('click', (e) => {
+  if (!tmdbApiKey) return; // let tap fall through to overlay handler
+  e.stopPropagation();
+  showPoster(movieIndex);
+});
 
 // ── Settings & TMDb ──
 let tmdbApiKey = localStorage.getItem('tmdb_api_key') || '';
@@ -1546,11 +1706,29 @@ document.getElementById('btn-tmdb-refresh').addEventListener('click', async (e) 
   await fetchTmdbMovies(key);
 });
 
+function refreshCurrentMovieTitle() {
+  // Replace the current movie title with one from the updated pool (only if no drawing saved yet)
+  if (movieIndex >= 0 && !movieHistory[movieIndex].drawing) {
+    const source = getMoviePool();
+    const used = movieHistory.map((e, i) => i !== movieIndex ? e.title : null).filter(Boolean);
+    const pool = source.filter(m => !used.includes(m));
+    const available = pool.length > 0 ? pool : source;
+    const pick = available[Math.floor(Math.random() * available.length)];
+    movieHistory[movieIndex].title = pick;
+    activeDrawingIndex = movieIndex;
+    // If movie overlay is open, refresh the display
+    if (movieOverlay.classList.contains('show')) {
+      displayMovie(false);
+    }
+  }
+}
+
 document.getElementById('settings-save').addEventListener('click', async () => {
   const key = tmdbInput.value.trim();
   const ffChecked = document.getElementById('family-friendly-toggle').checked;
+  const ffChanged = ffChecked !== familyFriendly;
   // If family-friendly setting changed, clear stale tmdb cache
-  if (ffChecked !== familyFriendly) {
+  if (ffChanged) {
     tmdbMovies = [];
   }
   familyFriendly = ffChecked;
@@ -1562,14 +1740,20 @@ document.getElementById('settings-save').addEventListener('click', async () => {
     localStorage.removeItem('tmdb_api_key');
     document.getElementById('tmdb-status').textContent = 'Saved';
     document.getElementById('tmdb-status').className = 'ok';
-    setTimeout(() => settingsOverlay.classList.remove('open'), 800);
+    setTimeout(() => {
+      settingsOverlay.classList.remove('open');
+      if (ffChanged) refreshCurrentMovieTitle();
+    }, 800);
     return;
   }
   const ok = await fetchTmdbMovies(key);
   if (ok) {
     tmdbApiKey = key;
     localStorage.setItem('tmdb_api_key', key);
-    setTimeout(() => settingsOverlay.classList.remove('open'), 900);
+    setTimeout(() => {
+      settingsOverlay.classList.remove('open');
+      if (ffChanged) refreshCurrentMovieTitle();
+    }, 900);
   }
 });
 
