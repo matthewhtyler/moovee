@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-title" content="Moovee">
 <title>Moovee</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Permanent+Marker&family=DM+Sans:wght@400;500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Patrick+Hand+SC&family=DM+Sans:wght@400;500&display=swap');
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -81,11 +81,10 @@
     font-size: 10px;
     font-weight: 500;
     letter-spacing: 0.08em;
-    text-transform: uppercase;
     color: #999;
   }
   #timer-display {
-    font-family: 'Permanent Marker', cursive;
+    font-family: 'Patrick Hand SC', cursive;
     font-size: 28px;
     color: var(--ink);
     line-height: 1;
@@ -219,7 +218,7 @@
     border: 2px solid transparent;
     border-radius: 12px;
     padding: 10px 0;
-    font-family: 'Permanent Marker', cursive;
+    font-family: 'Patrick Hand SC', cursive;
     font-size: 16px;
     color: var(--ink);
     cursor: pointer;
@@ -292,17 +291,51 @@
     backdrop-filter: blur(6px);
   }
   #done-overlay.show { opacity: 1; pointer-events: all; }
+  .done-speech-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    animation: wobble 0.5s ease;
+  }
+  .done-bubble {
+    position: relative;
+    background: white;
+    border: 3px solid var(--ink);
+    border-radius: 24px;
+    padding: 16px 28px;
+    max-width: 88vw;
+  }
+  .done-bubble-tail {
+    position: absolute;
+    bottom: -24px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0; height: 0;
+    border-left: 14px solid transparent;
+    border-right: 14px solid transparent;
+    border-top: 24px solid var(--ink);
+  }
+  .done-bubble-tail::after {
+    content: '';
+    position: absolute;
+    top: -27px;
+    left: -11px;
+    width: 0; height: 0;
+    border-left: 11px solid transparent;
+    border-right: 11px solid transparent;
+    border-top: 21px solid white;
+  }
   #done-overlay .done-cow {
     font-size: 80px;
     line-height: 1;
-    animation: wobble 0.5s ease;
+    margin-top: 30px;
   }
   #done-overlay .done-text {
-    font-family: 'Permanent Marker', cursive;
-    font-size: 52px;
+    font-family: 'Patrick Hand SC', cursive;
+    font-size: 72px;
     color: var(--ink);
-    text-shadow: 3px 3px 0 rgba(0,0,0,0.08);
-    animation: wobble 0.5s ease;
+    line-height: 1;
   }
   #done-overlay .done-sub {
     font-size: 15px;
@@ -317,6 +350,43 @@
     60% { transform: scale(1.1) rotate(3deg); }
     100% { transform: scale(1) rotate(0deg); }
   }
+  #btn-done-cancel {
+    position: absolute;
+    top: 24px; left: 24px;
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    border: none;
+    background: var(--ink);
+    color: white;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    transition: transform 0.2s;
+  }
+  #btn-done-cancel svg { width: 20px; height: 20px; display: block; margin: auto; }
+  #btn-done-cancel:active { transform: rotate(90deg) scale(0.9); }
+  #done-overlay.goodmoove #btn-done-cancel { display: flex; }
+
+  /* Play button on Good moove screen */
+  #btn-done-play {
+    width: 88px; height: 88px;
+    border-radius: 50%;
+    border: none;
+    background: var(--ink);
+    color: white;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2), 3px 3px 0 rgba(0,0,0,0.08);
+    transition: transform 0.2s;
+    margin-top: 8px;
+  }
+  #btn-done-play svg { width: 44px; height: 44px; display: block; margin: auto; }
+  #btn-done-play:active { transform: scale(0.9); }
+  #done-overlay.show #btn-done-play { display: flex; }
 
   /* ── DONE/CHECKMARK BUTTON ── */
   #btn-done-wrap {
@@ -340,13 +410,16 @@
     color: var(--ink);
     transition: transform 0.15s, background 0.15s;
   }
+  #btn-movie-corner svg { fill: var(--ink); }
+  #btn-movie-corner.on-movie { background: rgba(255,255,255,0.92); }
+  #btn-movie-corner.on-movie svg { fill: var(--ink); }
   #btn-movie-corner:active { transform: scale(0.88); }
 
   /* ── LEFT AREA (movie btn vertically centered with reset btn) ── */
   #left-area {
     position: fixed;
     top: 25px; left: 16px;
-    z-index: 10;
+    z-index: 45;
     display: flex;
     align-items: center;
   }
@@ -392,7 +465,7 @@
   }
   #movie-overlay.has-drawing #movie-title-bar { display: flex; }
   #movie-title-text {
-    font-family: 'Permanent Marker', cursive;
+    font-family: 'Patrick Hand SC', cursive;
     font-size: clamp(22px, 6vw, 48px);
     color: var(--ink);
     text-align: center;
@@ -413,7 +486,7 @@
   }
   #movie-overlay.has-drawing #movie-current-view { display: none; }
   #movie-center-text {
-    font-family: 'Permanent Marker', cursive;
+    font-family: 'Patrick Hand SC', cursive;
     font-size: clamp(28px, 8vw, 64px);
     color: var(--ink);
     text-align: center;
@@ -466,6 +539,119 @@
   #btn-back-movie.disabled { opacity: 0.35; pointer-events: none; background: #aaa; }
   #btn-forward-movie.hidden { opacity: 0; pointer-events: none; }
 
+
+  /* ── GEAR / SETTINGS BUTTON ── */
+  #btn-settings-movie {
+    position: absolute;
+    top: 24px; right: 24px;
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(8px);
+    color: var(--ink);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    transition: transform 0.2s;
+    z-index: 3;
+  }
+  #btn-settings-movie svg { width: 20px; height: 20px; display: block; margin: auto; }
+  #btn-settings-movie:active { transform: rotate(60deg) scale(0.9); }
+  #movie-overlay.show #btn-settings-movie { display: flex; }
+
+  /* ── SETTINGS MODAL ── */
+  #settings-overlay {
+    position: fixed; inset: 0;
+    background: rgba(26,26,46,0.55);
+    backdrop-filter: blur(3px);
+    z-index: 110;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  #settings-overlay.open { opacity: 1; pointer-events: all; }
+  #settings-modal {
+    background: white;
+    border-radius: 24px;
+    padding: 32px 28px 24px;
+    width: 320px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    transform: translateY(20px) scale(0.97);
+    transition: transform 0.25s cubic-bezier(.34,1.56,.64,1);
+  }
+  #settings-overlay.open #settings-modal { transform: translateY(0) scale(1); }
+  #settings-modal h2 {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #999;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  .settings-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .settings-row label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    color: #555;
+    letter-spacing: 0.04em;
+  }
+  .tmdb-input-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  #tmdb-input {
+    flex: 1;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.15s;
+    min-width: 0;
+  }
+  #tmdb-input:focus { border-color: var(--ink); }
+  #btn-tmdb-refresh {
+    width: 36px; height: 36px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    border: none;
+    background: var(--ink);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  #btn-tmdb-refresh svg { width: 16px; height: 16px; display: block; margin: auto; }
+  #btn-tmdb-refresh:active { transform: rotate(180deg) scale(0.9); }
+  .modal-btn-primary {
+    background: var(--ink) !important;
+    color: white !important;
+  }
+  #tmdb-status {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    min-height: 18px;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+  #tmdb-status.ok { color: #2a9d5c; }
+  #tmdb-status.err { color: var(--accent); }
+  #tmdb-status.loading { color: #999; }
+
 </style>
 </head>
 <body>
@@ -488,7 +674,7 @@
 <!-- Left area (movie button) -->
 <div id="left-area">
   <button id="btn-movie-corner" title="Show movie title">
-    <svg viewBox="0 0 989.96 837.54" xmlns="http://www.w3.org/2000/svg" style="width:32px;height:32px;fill:var(--ink);">
+    <svg viewBox="0 0 989.96 837.54" xmlns="http://www.w3.org/2000/svg" style="width:32px;height:32px;">
       <path d="M266.89,0c8.53,3.64,15.43,9.95,19.4,18.74,1.23,2.73,3.09,5.58,3.85,8.47,2.73,10.46,4.52,20.95,9.39,30.59l9.83,19.48c1.88,3.72,4.89,5.85,7.24,9.31l5.6,8.25c3,4.42,7.13,7.16,10.57,11.38,2.01,2.46,5.45,4.48,7.83,6.8,4.5,4.38,8.67,8.96,13.75,12.51,3.37,2.35,6.32,4.44,9.41,7.44l20.27-5.09,14.03-2.34c7.91-1.32,15.42-2.92,23.38-4.04,8.84-1.25,17.31-2.49,26.29-3.01l42.45-2.47c7.64-.44,14.98-.05,22.57.47l27.11,1.88,28.98,3.29c8.25.94,16.04,2.2,24.14,3.87l19.58,4.03,14.81,3.31c6-4.8,11.84-9,17.38-14.13l10.5-9.72,9.38-10.07c11.06-11.89,19.04-24.79,26.03-39.27,8.58-17.78,6.4-26.01,15.36-44.59,1.8-3.73,5.85-6.28,8.69-9.21,5.31-5.47,5.81-3.23,9.7-5.88h17.9c.02.06,1.17.82,1.69.92,10.18,2.05,21.2,11.52,28.62,19.22,2.27,2.35,6.29,4.19,7.69,7.07,4.94,10.16,10.66,13.56,14.5,23.01l7.19,17.68c1.52,3.74,2.46,8.08,3.45,12.09,2.24,9.15,2.63,18.34,3.57,27.71s.96,17.77.17,26.65l-2.53,28.29c-.89,9.98-3.04,19.96-5.99,29.38l-5.17,16.48c9.53-3.74,17.51-9.88,27.06-13.34l7.42-2.69c15.99-5.8,30.95-12.71,47.84-15.9,15.73-2.97,30.69-4.29,46.31.24l15.17,4.4c6.02,1.74,11.15,5.66,16.14,9.35,2.24,1.66,5.88,2.9,7.65,4.77,4.31,4.57,8.01,8.29,12.75,12.44,9.6,18.32,14.3,24.53,14.12,46.61-.09,11.12-3.67,20.77-8.64,30.48-3.91,7.64-8.09,13.98-14.6,19.7-3.94,3.46-7.6,6.82-12.22,9.6l-11.51,6.93c-6.76,4.07-14.71,5.35-22.41,7.52-11.44,3.22-23.17,3.45-35.08,3.75l-15.58.39c-13.23.33-26.1,1.7-38.97,4.14l-10.2,1.94-.76,19.83-1.63,26.97-1.24,15.83-2.19,41.16-1.02,17.14-.95,11.05-.94,13.92-1.14,22.47-.9,13.26-1.18,16.34-.95,13.95-.93,17.93-1.91,33.89-3.81,53.84c-.26,3.66-.58,6.79.09,10.44,2.28,12.38,3.08,35.37-.19,47-1.58,5.61-2.14,11.43-4.17,16.86-4.11,11-9.01,22.03-17.02,30.37l-4.96,5.17c-3.66,3.82-7.33,6.52-10.98,10.24l-7.24,7.38c-3.17,3.23-31.03,18.35-37.2,21.16-26.56,12.1-54.53,18.89-83.26,23.23l-31.71,4.78-28.01,2.02c-14.61,1.06-28.47,2.48-43.17,2.47l-80.71-.04-32.46-1.7-40.79-3.15c-5.54-.43-44.32-6.62-49.58-7.89l-18.86-4.53c-3.96-.95-8.01-2.43-11.97-3.69l-12.36-3.94c-13.26-4.22-14.89-7.41-25.19-11.35-6.97-2.67-12.78-8.04-19.3-11.34-5.56-2.81-9.03-6.04-13.54-10.11-7.53-6.79-16.12-14.08-21.69-22.9l-6.59-10.43c-8.14-12.88-14.69-39.3-13.58-54.86l2.16-30.36c1.09-15.38-1.87-30.38-2.92-45.84l-3.27-48.26-1.03-24.99-5.26-86.14-2.77-49.08c-.61-10.87-.87-21.14-1.87-31.97-1.1-11.87-1.49-22.97-1.44-35.21-15.56-5.72-48.29-7.63-65.29-7.28-12.55.26-24.58-.76-36.71-3.85-24.17-6.17-15.17-5.44-33.28-14.4-3.83-1.9-6.62-6.02-10.02-8.44-5.15-3.67-8.17-7.77-11.59-12.8-5.56-8.17-9.56-16.16-11.44-26.06l-1.45-7.62c-.04-.21-.58-1.16-.54-1.02v-9.34c.85-8,4.18-21.67,8.03-29.53,8.62-17.63,28.63-33.17,47.07-39.3,16.22-5.39,32.82-8.07,49.84-5.01,20.89,3.23,40.22,9.4,59.28,18.53,10.57,5.06,20.32,10.24,31.52,14.62-8.76-20.55-11.4-38.79-13.53-60.02-.57-20.29-1.22-40.25,1.29-60.47,1.92-15.45,11.69-36.88,19.7-50.23,1.64-2.74,4.91-4.85,6.2-7.92,1.74-4.15,5.3-6.53,8.21-9.61,9.5-10.03,18.1-15.61,30.6-20.01h18.67ZM716.48,170.16c2.93,1.19,5.38,3.5,7.68,5.31,3.87,3.05,8.34,4.35,12.21,7.21l14.69,10.86c1.03.76,3.46,2.29,4.17.91,12.54-24.76,15.04-62.72,11.56-89.69-1.53-11.8-4.43-22.4-8.9-33.24-2.06-5-3.93-10.09-7.26-14.38l-10.23-13.12-4.55,12.69-9.92,23.59-7.46,14.85c-3.31,6.58-8.1,12.22-12.02,18.37-2.07,3.24-3.78,6.38-6.51,9.18-2.56,2.27-5.37,4.55-7.37,7.22-5.73,7.66-12.05,14.25-20.46,19.63,9.33,3.22,17.69,7.16,26.14,11.95l7.92,4.49,10.31,4.19ZM289.95,163.24c9.25-5.1,17.86-9.76,27.67-12.86.1-2.81-2.63-2.79-4-4.12-5.26-5.09-10.43-10.34-15.21-15.92l-10.15-11.84c-4.72-5.5-8.19-11.91-12.52-17.74-2.79-3.76-4.24-7.4-6.32-11.65l-8.92-18.27-9.02-23.72c-.68-1.79-4.39.09-5.18,1.27l-10.01,15c-2.81,4.22-4.02,9.62-5.77,14.43-7.42,20.5-8.35,41.23-7.3,62.99.57,11.82,2.06,22.92,5.57,34.24l6.21,20.03c3.89-.55,6.84-2.64,9.8-4.96,5.35-4.18,10.76-8.42,16.56-11.92l11.34-6.83c5.35-3.22,11.44-4.95,17.25-8.15ZM387.46,512.09c12.28-1.94,23.59-2.75,35.52-3.85,21-1.94,41.34-2.73,62.53-2.56l50.02.4c21.83.17,80.81,6.39,101.81,11.88l9.77,2.55c17.85,4.67,36.62,10.19,53.03,18.49l14.04,7.11c8.79,4.45,16.1,9.95,23.92,15.77,4.89,3.64,9.25,6.91,13.74,11.22,3.85,3.7,8.18,6.4,11.6,11.41l2.38-24.39,2.2-31.14,2.43-39.67,1.9-22.56,1.16-20.15.83-10.26c2.11-26.09,3.76-51.49,4.73-77.67.4-10.84.9-21.31,3.15-31.65,1.56-7.17,1.36-13.12-1.54-19.96-2.05-4.84-3.77-9.88-6.59-14.41l-6.14-9.9c-3.26-5.25-5.87-9.88-9.74-14.72-5.68-7.11-10.7-14.36-17.42-20.65-3.2-2.99-25.88-24-27.44-24.79l-6.01-3.05c-7.29-6.63-15.04-11.12-23.64-15.69-5.8-3.08-11.38-6.13-17.43-8.86l-19.3-8.72c-7.48-3.38-15.66-4.87-23.52-7.54-9.06-3.08-29.24-8.66-38.27-10.04l-35.71-5.43c-19.42-2.95-42.45-3.76-62.56-3.31.61,2.57.96,4.12,1.74,5.89,5.66,12.9,9.63,26.06,10.93,40.29,2.18,24,1.87,47.32-4.12,70.49-1.28,4.96-2.56,9.45-4.61,14.02-7.73,17.18-3.61,11.54-14.42,27.75-3.1,4.65-5.93,8.62-9.98,12.67l-13.21,13.19c-3.83,3.82-8.08,6.15-12.2,9.66l-8.71,7.41c-2.74,2.33-6.08,3.27-9.04,5.2l-9.47,6.16-12.04,7.18,3.86,20.34c2.27,11.93-1.63,35.74-8.24,45.42-3.1,4.53-7.11,8.53-11.33,12.09-3.36,2.83-9.27,3.98-13.55,4.74-7.1,1.27-13.47-1.2-19.76-3.72-4.45-1.78-6.97-4.56-9.71-8.22-5.99-8-10.7-16.41-12.29-27.06l-18.01,9.07-28.65,10.15-11.53,3.35c-20.03,4.3-34.3,6.12-55.57,5.52l3.05,51.75c.53,9.07,1.24,17.45,1.88,26.44l3.97,55.86c5.1-5.72,8.62-9.88,13.82-13.75,2.96-2.2,5.44-5.93,8.64-7.66,5.5-2.99,9.47-6.84,14.48-10.43,4.3-3.08,9.45-5.68,14.32-8.34,14.31-7.8,29-14.65,44.64-19.02l29.19-8.15c11.99-3.34,23.87-4.16,36.47-6.16ZM887.83,296.5c9.8-.77,19.84-3.61,28.08-8.62l13.14-8c2.48-1.51,4.2-4.59,6.34-6.83,7.98-8.37,11.36-20.78,6.5-31.58-5.57-12.35-17.01-19.72-30.46-20.08-23.79-.64-32.08,5.84-52.55,15.75-3.33,3.6-6.96,5.96-11.03,8.54-6.14,3.89-11.56,8.46-17.29,13.06-6.78,3.96-12.63,9.43-15.42,16.95-2.43,6.57,4.71,20.62,18.28,19.21,28.93-3,44.97,2.33,54.4,1.6ZM169.22,296.77c2.27-8.53,5.37-16.69,9.08-24.98l-23.44-18.05-12.44-9.47-6.94-3.82c-5.03-2.77-8.97-6.77-14.31-9.01-22.78-9.56-18.81-9.57-43.33-9.63-3.84,0-6.75.96-10.38,2.17-17.37,5.82-26.27,25.99-17.08,42.58,4.71,8.51,13.52,16.25,22.52,20.39l8.11,3.74c11.03,5.08,22.34,7.1,34.46,5.18,17.85-2.82,35.77-2.58,53.77.89ZM578.16,793.17c14.08-1.05,27.23-2.66,40.86-4.51,30.33-4.12,55.97-12.21,84.22-23.12,8.86-3.42,16.11-7.45,23.84-12.93,4.81-3.41,9.6-5.73,13.64-10.54,1.71-2.03,5.52-3.54,7.1-5.83l9.24-13.38c3.2-4.63,4.09-10.82,5.53-16.27,4.07-15.39,2.93-32.14.03-47.64-1.67-8.94-3.98-17.4-10.07-24.32-5.65-14.3-26.16-30.99-38.39-40.1-3.86-2.87-7.21-4.91-11.49-7.26l-16.46-9-19.72-8.3c-3.61-1.52-7.83-2.05-11.57-3.34-10.85-3.73-21.47-6.25-32.7-8.69-12.38-2.69-24.29-5.33-36.97-6.54l-26.4-2.54c-38.94-2.89-77.82-4.63-116.8-.91l-25.62,2.45c-31.52,3.01-59.84,9-89.99,18.74-22.33,7.21-49.58,21.51-66.21,37.96l-9.83,9.72c-7.12,7.04-12.55,15.87-16.88,25-8.05,16.99-11.19,38.14-8.37,56.72,1.37,9.01,4.95,17.35,8.52,25.58,1.74,4.01,5.33,7.28,7.74,10.85,2.76,4.08,6.52,6.03,10.17,9.33l5.18,4.68,16.8,10.52c6.99,4.38,14.11,6.65,21.76,9.52,12.22,4.58,23.88,8.92,36.75,11.66,9.84,2.1,18.9,5.06,28.98,6.59,28.66,4.34,56.72,8.1,85.78,8.14l93.89.15c5.34,0,10.41-.37,15.65-.76l21.8-1.63Z"/>
       <path d="M644.8,453.33c-5.69,7.41-26.22,14.23-40.01,5.43-9.64-6.15-15.2-15.91-18.58-26.66-5.48-17.42-5.2-33.74,2.24-50.54,2.34-5.3,5.73-9.94,8.56-14.95,6.14-5.78,13.81-9.1,22.02-10.07,5.92.01,11.13,1.74,16.35,3.66,6.43,2.37,9.37,6.51,12.83,11.75,5.29,7.99,9.17,15.61,9.86,25.48,1.64,23.42,1.24,36.97-13.27,55.89Z"/>
       <path d="M558.08,699.46c-3.45-7.46-6.62-14.56-7.22-22.63-.56-7.54-.81-15.96,2.33-22.7l4.73-10.16c10.5-10.07,13.88-13.61,28.76-13.79,20.22-.24,34.79,24.94,32.68,43.73-.18,15.45-8.86,30.4-23.15,37.26-6.53,3.14-15.71,2.9-22.11.09-6.25-2.75-10.42-7.59-16.01-11.8Z"/>
@@ -584,6 +770,12 @@
       <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
     </svg>
   </button>
+  <button id="btn-settings-movie" title="Settings">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+  </button>
 </div>
 
 <!-- Timer set modal -->
@@ -598,11 +790,52 @@
   </div>
 </div>
 
+<!-- Settings modal -->
+<div id="settings-overlay">
+  <div id="settings-modal">
+    <h2>Settings</h2>
+    <div class="settings-row">
+      <label for="tmdb-input">TMDb API Key</label>
+      <div class="tmdb-input-row">
+        <input type="text" id="tmdb-input" placeholder="Paste your API key here" autocomplete="off" autocorrect="off" spellcheck="false">
+        <button id="btn-tmdb-refresh" title="Fetch movies">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"/>
+            <polyline points="1 20 1 14 7 14"/>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div id="tmdb-status"></div>
+    <div class="modal-actions">
+      <button class="modal-btn" id="settings-cancel">Cancel</button>
+      <button class="modal-btn modal-btn-primary" id="settings-save">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- Time's up -->
 <div id="done-overlay">
-  <div class="done-cow">🐮</div>
-  <div class="done-text">Moove on!</div>
-  <div class="done-sub">Pass to the next player</div>
+  <button id="btn-done-cancel" title="Cancel">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18"/>
+      <line x1="6" y1="6" x2="18" y2="18"/>
+    </svg>
+  </button>
+  <div class="done-speech-wrap">
+    <div class="done-bubble">
+      <div class="done-text">Moove on!</div>
+      <div class="done-bubble-tail"></div>
+    </div>
+    <div class="done-cow">🐮</div>
+  </div>
+  <div class="done-sub">Pass to the next player...</div>
+  <button id="btn-done-play" title="Continue">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M7 4.5 C7 3.2 8.4 2.4 9.5 3.1 L20.5 10.6 C21.5 11.2 21.5 12.8 20.5 13.4 L9.5 20.9 C8.4 21.6 7 20.8 7 19.5 Z" fill="white" stroke="none"/>
+    </svg>
+  </button>
 </div>
 
 <script>
@@ -637,6 +870,8 @@ function getPos(e) {
 
 function startDraw(e) {
   e.preventDefault();
+  // Don't draw if any overlay is showing
+  if (movieOverlay.classList.contains('show') || doneOverlay.classList.contains('show')) return;
   // Auto-start timer if paused and time remains
   if (!timerRunning && remaining > 0) {
     startTimer();
@@ -668,6 +903,10 @@ function draw(e) {
 }
 
 function endDraw() { isDrawing = false; }
+
+// Cancel any in-progress draw when touch/mouse is lifted anywhere
+document.addEventListener('mouseup', endDraw);
+document.addEventListener('touchend', endDraw);
 
 canvas.addEventListener('mousedown', startDraw);
 canvas.addEventListener('mousemove', draw);
@@ -790,20 +1029,47 @@ let doneMode = 'timesup'; // 'timesup' | 'goodmoove' | 'launch'
 
 function showDone(mode) {
   doneMode = mode || 'timesup';
+  doneOverlay.classList.remove('goodmoove');
   if (doneMode === 'timesup') {
     if (movieIndex >= 0) saveDrawingToIndex(movieIndex);
     doneText.textContent = 'Moove on!';
-    doneSub.textContent = 'Pass to the next player';
+    doneSub.textContent = 'Pass to the next player...';
   } else if (doneMode === 'goodmoove') {
     doneText.textContent = 'Good moove!';
-    doneSub.textContent = 'Pass to the next player';
+    doneSub.textContent = 'Pass to the next player...';
+    doneOverlay.classList.add('goodmoove');
   } else if (doneMode === 'launch') {
     doneText.textContent = 'Moovee!';
-    doneSub.textContent = 'Tap to begin';
+    doneSub.textContent = 'Tap to begin...';
   }
   doneOverlay.classList.add('show');
   updateResetBtn();
 }
+
+document.getElementById('btn-done-cancel').addEventListener('click', (e) => {
+  e.stopPropagation();
+  doneOverlay.classList.remove('show');
+  doneOverlay.classList.remove('goodmoove');
+  // Resume timer from where it was
+  if (remaining > 0) {
+    startTimer();
+    updateResetBtn();
+  }
+});
+
+document.getElementById('btn-done-play').addEventListener('click', (e) => {
+  e.stopPropagation();
+  isDrawing = false;
+  // Run the action first (shows movie overlay), THEN hide done overlay for clean transition
+  if (doneMode === 'goodmoove' || doneMode === 'timesup') {
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    resetTimer(totalSeconds);
+  }
+  showMovie();
+  doneOverlay.classList.remove('show');
+  doneOverlay.classList.remove('goodmoove');
+});
 
 doneOverlay.addEventListener('click', () => {
   doneOverlay.classList.remove('show');
@@ -813,6 +1079,9 @@ doneOverlay.addEventListener('click', () => {
     resetTimer(totalSeconds);
     showMovie();
   } else if (doneMode === 'goodmoove') {
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    resetTimer(totalSeconds);
     showMovie();
   } else if (doneMode === 'launch') {
     showMovie();
@@ -869,47 +1138,46 @@ const MOVIES = [
   "Schindler's List","The Silence of the Lambs","Parasite","Titanic","Jurassic Park",
   "Back to the Future","Raiders of the Lost Ark","The Lion King","Home Alone","E.T.",
   "Star Wars","The Empire Strikes Back","Return of the Jedi","Jaws","Alien",
-  "Aliens","Terminator 2","Die Hard","Speed","Top Gun","Top Gun: Maverick",
-  "Gladiator","Braveheart","The Departed","No Country for Old Men","There Will Be Blood",
-  "Whiplash","La La Land","The Grand Budapest Hotel","Moonlight","Everything Everywhere All at Once",
-  "Get Out","A Quiet Place","Hereditary","Midsommar","The Witch",
-  "Mad Max: Fury Road","Arrival","Dunkirk","1917","Oppenheimer",
-  "Barbie","Avatar","Avengers: Endgame","Black Panther","Spider-Man: Into the Spider-Verse",
-  "The Incredibles","Up","WALL-E","Finding Nemo","Toy Story",
-  "Coco","Soul","Ratatouille","Monsters, Inc.","A Bug's Life",
-  "Shrek","Kung Fu Panda","How to Train Your Dragon","Frozen","Moana",
-  "Encanto","Turning Red","Spirited Away","Princess Mononoke","My Neighbor Totoro",
-  "Akira","Blade Runner","Blade Runner 2049","2001: A Space Odyssey","A Clockwork Orange",
-  "Full Metal Jacket","Apocalypse Now","Platoon","Saving Private Ryan","Schindler's List",
+  "Aliens","Terminator 2","Die Hard","Speed","Top Gun",
+  "Top Gun: Maverick","Gladiator","Braveheart","The Departed","No Country for Old Men",
+  "There Will Be Blood","Whiplash","La La Land","The Grand Budapest Hotel","Moonlight",
+  "Everything Everywhere All at Once","Get Out","A Quiet Place","Hereditary","Midsommar",
+  "The Witch","Mad Max: Fury Road","Arrival","Dunkirk","1917",
+  "Oppenheimer","Barbie","Avatar","Avengers: Endgame","Black Panther",
+  "Spider-Man: Into the Spider-Verse","The Incredibles","Up","WALL-E","Finding Nemo",
+  "Toy Story","Coco","Soul","Ratatouille","Monsters, Inc.",
+  "A Bug's Life","Shrek","Kung Fu Panda","How to Train Your Dragon","Frozen",
+  "Moana","Encanto","Turning Red","Spirited Away","Princess Mononoke",
+  "My Neighbor Totoro","Akira","Blade Runner","Blade Runner 2049","2001: A Space Odyssey",
+  "A Clockwork Orange","Full Metal Jacket","Apocalypse Now","Platoon","Saving Private Ryan",
   "Catch Me If You Can","The Truman Show","Cast Away","Philadelphia","Rain Man",
   "Rocky","Raging Bull","Million Dollar Baby","Crouching Tiger Hidden Dragon","The Karate Kid",
   "Misery","The Shining","It","Psycho","Halloween",
   "Nightmare on Elm Street","Scream","The Sixth Sense","Unbreakable","Signs",
   "Casablanca","Citizen Kane","Sunset Boulevard","Some Like It Hot","Singin' in the Rain",
-  "Chinatown","Vertigo","Rear Window","North by Northwest","Psycho",
-  "The Wizard of Oz","Gone with the Wind","Ben-Hur","Lawrence of Arabia","Spartacus",
-  "Amélie","Cinema Paradiso","Life is Beautiful","The Bicycle Thief","Rome Open City",
-  "Oldboy","Memories of Murder","Train to Busan","The Handmaiden","Burning",
-  "City of God","Pan's Labyrinth","Y Tu Mamá También","Amores Perros","Roma",
-  "Boyhood","Before Sunrise","Lost in Translation","Her","Being John Malkovich",
-  "Eternal Sunshine of the Spotless Mind","The Royal Tenenbaums","Rushmore","Adaptation","Magnolia",
-  "Boogie Nights","There Will Be Blood","Phantom Thread","The Master","Inherent Vice",
-  "Drive","Nightcrawler","Prisoners","Zodiac","Se7en",
-  "Heat","L.A. Confidential","Chinatown","Fargo","The Big Lebowski",
-  "O Brother Where Art Thou","True Grit","No Country for Old Men","Blood Simple","Barton Fink",
-  "American Beauty","Revolutionary Road","Little Miss Sunshine","Juno","Lady Bird",
-  "The Favourite","Phantom Thread","Marriage Story","Marriage Story","The Power of the Dog",
-  "Tár","Past Lives","Aftersun","The Banshees of Inisherin","All Quiet on the Western Front",
-  "Dune","Dune: Part Two","The Batman","Joker","Doctor Strange",
-  "The Revenant","Wolf of Wall Street","Django Unchained","Inglourious Basterds","Kill Bill",
-  "Reservoir Dogs","Jackie Brown","Sin City","300","V for Vendetta",
-  "The Social Network","Moneyball","Steve Jobs","The Big Short","Margin Call",
-  "Spotlight","All the President's Men","Network","The Post","Lincoln",
-  "12 Years a Slave","Hidden Figures","Selma","Malcolm X","Ali",
-  "When Harry Met Sally","Sleepless in Seattle","You've Got Mail","Notting Hill","Pretty Woman",
-  "Four Weddings and a Funeral","Bridget Jones's Diary","The Holiday","Love Actually","Crazy Rich Asians",
-  "Superbad","The Hangover","Bridesmaids","Game Night","Knives Out",
-  "Glass Onion","Clue","Murder on the Orient Express","Gone Girl","Gone Baby Gone"
+  "Chinatown","Vertigo","Rear Window","North by Northwest","The Wizard of Oz",
+  "Gone with the Wind","Ben-Hur","Lawrence of Arabia","Spartacus","Amélie",
+  "Cinema Paradiso","Life is Beautiful","The Bicycle Thief","Rome Open City","Oldboy",
+  "Memories of Murder","Train to Busan","The Handmaiden","Burning","City of God",
+  "Pan's Labyrinth","Y Tu Mamá También","Amores Perros","Roma","Boyhood",
+  "Before Sunrise","Lost in Translation","Her","Being John Malkovich","Eternal Sunshine of the Spotless Mind",
+  "The Royal Tenenbaums","Rushmore","Adaptation","Magnolia","Boogie Nights",
+  "Phantom Thread","The Master","Inherent Vice","Drive","Nightcrawler",
+  "Prisoners","Zodiac","Se7en","Heat","L.A. Confidential",
+  "Fargo","The Big Lebowski","O Brother Where Art Thou","True Grit","Blood Simple",
+  "Barton Fink","American Beauty","Revolutionary Road","Little Miss Sunshine","Juno",
+  "Lady Bird","The Favourite","Marriage Story","The Power of the Dog","Tár",
+  "Past Lives","Aftersun","The Banshees of Inisherin","All Quiet on the Western Front","Dune",
+  "Dune: Part Two","The Batman","Joker","Doctor Strange","The Revenant",
+  "Wolf of Wall Street","Django Unchained","Inglourious Basterds","Kill Bill","Reservoir Dogs",
+  "Jackie Brown","Sin City","300","V for Vendetta","The Social Network",
+  "Moneyball","Steve Jobs","The Big Short","Margin Call","Spotlight",
+  "All the President's Men","Network","The Post","Lincoln","12 Years a Slave",
+  "Hidden Figures","Selma","Malcolm X","Ali","When Harry Met Sally",
+  "Sleepless in Seattle","You've Got Mail","Notting Hill","Pretty Woman","Four Weddings and a Funeral",
+  "Bridget Jones's Diary","The Holiday","Love Actually","Crazy Rich Asians","Superbad",
+  "The Hangover","Bridesmaids","Game Night","Knives Out","Glass Onion",
+  "Clue","Murder on the Orient Express","Gone Girl","Gone Baby Gone"
 ];
 
 let movieHistory = [];  // { title, drawing } — drawing is a locked dataURL or null
@@ -982,12 +1250,14 @@ function displayMovie(triggerAnim = true) {
 
   updateNavBtns();
   movieOverlay.classList.add('show');
+  document.getElementById('btn-movie-corner').classList.add('on-movie');
 }
 
 function showMovie() {
   // Do NOT save canvas here — saving only happens on timer expiry or checkmark
-  const pool = MOVIES.filter(m => !movieHistory.map(e => e.title).includes(m));
-  const available = pool.length > 0 ? pool : MOVIES;
+  const source = (typeof getMoviePool === 'function') ? getMoviePool() : MOVIES;
+  const pool = source.filter(m => !movieHistory.map(e => e.title).includes(m));
+  const available = pool.length > 0 ? pool : source;
   const pick = available[Math.floor(Math.random() * available.length)];
   movieHistory.push({ title: pick, drawing: null });
   movieIndex = movieHistory.length - 1;
@@ -996,24 +1266,44 @@ function showMovie() {
 
 function hideMovie() {
   movieOverlay.classList.remove('show');
+  document.getElementById('btn-movie-corner').classList.remove('on-movie');
+  isDrawing = false;
 }
 
 // ── Done (checkmark) button ──
 document.getElementById('btn-done').addEventListener('click', () => {
   // Save current canvas to current movie (locks it), respects blank-check
   if (movieIndex >= 0) saveDrawingToIndex(movieIndex);
-  // Clear canvas
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  // Pause timer, reset it
-  resetTimer(totalSeconds);
-  // Show "Good moove!" interstitial — tap will then open movie screen
+  // Pause timer but remember remaining time for cancel
+  pauseTimer();
+  // Show "Good moove!" interstitial — tap will clear canvas + reset timer + open movie screen
   showDone('goodmoove');
 });
 
+function navigateFromDrawingTitle() {
+  // Same logic as tapping the overlay when on a title with a drawing
+  const isAtEnd = movieIndex === movieHistory.length - 1;
+  if (isAtEnd) {
+    showMovie();
+  } else {
+    const lastEntry = movieHistory[movieHistory.length - 1];
+    if (lastEntry.drawing) {
+      showMovie();
+    } else {
+      movieIndex = movieHistory.length - 1;
+      displayMovie(true);
+    }
+  }
+}
+
 function handleMovieBtn() {
   if (movieOverlay.classList.contains('show')) {
-    hideMovie();
+    const currentEntry = movieHistory[movieIndex];
+    if (currentEntry && currentEntry.drawing) {
+      navigateFromDrawingTitle();
+    } else {
+      hideMovie();
+    }
   } else {
     if (movieIndex < 0) {
       showMovie();
@@ -1045,15 +1335,124 @@ btnForward.addEventListener('click', (e) => {
   }
 });
 
-// Tap anywhere on overlay (except nav buttons) closes it
+// Tap on movie overlay
 movieOverlay.addEventListener('click', (e) => {
   const navLeft = document.getElementById('movie-nav-left');
-  if (!btnReload.contains(e.target) && !navLeft.contains(e.target)) {
+  // Ignore taps on nav buttons (cow btn is above overlay so never reaches here)
+  if (btnReload.contains(e.target) || navLeft.contains(e.target)) return;
+
+  const currentEntry = movieHistory[movieIndex];
+  const isAtEnd = movieIndex === movieHistory.length - 1;
+
+  if (currentEntry && currentEntry.drawing) {
+    navigateFromDrawingTitle();
+  } else {
     hideMovie();
   }
 });
 
 updateNavBtns();
+
+// ── Settings & TMDb ──
+let tmdbApiKey = localStorage.getItem('tmdb_api_key') || '';
+let tmdbMovies = [];
+
+async function fetchTmdbMovies(key, statusEl) {
+  const status = statusEl || document.getElementById('tmdb-status');
+  status.textContent = 'Fetching movies...';
+  status.className = 'loading';
+  try {
+    const pages = [1, 2, 3, 4, 5];
+    const results = await Promise.all(pages.map(p =>
+      fetch(`https://api.themoviedb.org/3/movie/popular?api_key=${key}&language=en-US&page=${p}`)
+        .then(r => { if (!r.ok) throw new Error('Bad response'); return r.json(); })
+    ));
+    const fetched = results.flatMap(r => r.results.map(m => m.title));
+    // Merge with hardcoded list — deduplicated
+    tmdbMovies = [...new Set([...MOVIES, ...fetched])];
+    status.textContent = `✓ ${tmdbMovies.length} movies in pool`;
+    status.className = 'ok';
+    return true;
+  } catch (e) {
+    status.textContent = 'Invalid key or network error';
+    status.className = 'err';
+    return false;
+  }
+}
+
+function getMoviePool() {
+  // Merged list when available, otherwise just hardcoded
+  return tmdbMovies.length > 0 ? tmdbMovies : MOVIES;
+}
+
+// Patch showMovie to use getMoviePool()
+const _origShowMovie = showMovie;
+// Override showMovie inline below after definition
+
+const settingsOverlay = document.getElementById('settings-overlay');
+const tmdbInput = document.getElementById('tmdb-input');
+
+document.getElementById('btn-settings-movie').addEventListener('click', (e) => {
+  e.stopPropagation();
+  tmdbInput.value = tmdbApiKey;
+  const status = document.getElementById('tmdb-status');
+  if (tmdbApiKey && tmdbMovies.length > 0) {
+    status.textContent = `✓ ${tmdbMovies.length} movies loaded`;
+    status.className = 'ok';
+  } else if (tmdbApiKey) {
+    status.textContent = 'Key saved — not yet fetched';
+    status.className = 'loading';
+  } else {
+    status.textContent = '';
+    status.className = '';
+  }
+  settingsOverlay.classList.add('open');
+});
+
+document.getElementById('settings-cancel').addEventListener('click', () => {
+  settingsOverlay.classList.remove('open');
+});
+
+document.getElementById('btn-tmdb-refresh').addEventListener('click', async (e) => {
+  e.stopPropagation();
+  const key = tmdbInput.value.trim() || tmdbApiKey;
+  if (!key) {
+    const status = document.getElementById('tmdb-status');
+    status.textContent = 'Enter an API key first';
+    status.className = 'err';
+    return;
+  }
+  await fetchTmdbMovies(key);
+});
+
+document.getElementById('settings-save').addEventListener('click', async () => {
+  const key = tmdbInput.value.trim();
+  if (!key) {
+    tmdbApiKey = '';
+    tmdbMovies = [];
+    localStorage.removeItem('tmdb_api_key');
+    document.getElementById('tmdb-status').textContent = 'Key cleared';
+    document.getElementById('tmdb-status').className = 'loading';
+    setTimeout(() => settingsOverlay.classList.remove('open'), 800);
+    return;
+  }
+  const ok = await fetchTmdbMovies(key);
+  if (ok) {
+    tmdbApiKey = key;
+    localStorage.setItem('tmdb_api_key', key);
+    setTimeout(() => settingsOverlay.classList.remove('open'), 900);
+  }
+});
+
+settingsOverlay.addEventListener('click', (e) => {
+  if (e.target === settingsOverlay) settingsOverlay.classList.remove('open');
+});
+
+// On launch: if key stored, fetch movies silently (no visible status update)
+if (tmdbApiKey) {
+  const silentStatus = document.createElement('span');
+  fetchTmdbMovies(tmdbApiKey, silentStatus).catch(() => {});
+}
 
 // Show launch screen on first load
 showDone('launch');
